@@ -168,9 +168,8 @@ class Order(DatabaseObject):
         return self
 
 
-class Request(DatabaseObject, ABC):
+class Request():
     def __init__(self):
-        super().__init__()
         self.message_id = None
         self.order_id = None
         self.requester = None
@@ -183,8 +182,10 @@ class Request(DatabaseObject, ABC):
         self.requester = row[2]
         self.action = row[3]
         self.agreement = row[4]
-
         return self
+
+    def save(self):
+        pass
 
 
 # class User(DatabaseObject):

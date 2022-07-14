@@ -1,9 +1,5 @@
-import asyncio
-
 import asyncpg
 import logging
-from aiogram.types import Message
-
 from tgbot.database.schemas import Order, User, UserProfile, Request
 
 logger = logging.getLogger(__name__)
@@ -124,19 +120,19 @@ class Database:
         row = await self.fetchrow(sql)
         return UserProfile().load_from_db(row)
 
-    async def get_orders_with_location(self):
-        sql = f'''SELECT id, latitude, longitude FROM orders WHERE status=1;'''
+    async def get_orders_with_location(self, executor_id):
+        sql = f'''SELECT id, latitude, longitude FROM orders WHERE status = 1 AND  creator_id != {executor_id};'''
         rows = await self.fetch(sql)
         return [(row[0], (row[1], row[2])) for row in rows]
 
     async def get_orders_as_creator(self, user_id):
-        sql = f'''SELECT id FROM orders WHERE creator_id={user_id};'''
+        sql = f'''SELECT id FROM orders WHERE (creator_id={user_id}) and (status != 3);'''
         rows = await self.fetch(sql)
         orders = [await self.get_order_by_id(row[0]) for row in rows]
         return orders
 
     async def get_orders_as_executor(self, user_id):
-        sql = f'''SELECT id FROM orders WHERE executor_id={user_id};'''
+        sql = f'''SELECT id FROM orders WHERE (executor_id={user_id}) and (status != 3);'''
         rows = await self.fetch(sql)
         orders = [await self.get_order_by_id(row[0]) for row in rows]
         return orders
@@ -144,7 +140,7 @@ class Database:
     async def get_request_by_message_id(self, message_id):
         sql = f'''SELECT (message_id, order_id, requester, action, agreement) FROM requests WHERE message_id={message_id};'''
         row = await self.fetchrow(sql)
-        return Request().load_from_db(row)
+        return Request().load_from_db(row[0])
 
     async def get_active_request(self, order_id, user_id, requester):
         sql = f'''SELECT message_id FROM requests 

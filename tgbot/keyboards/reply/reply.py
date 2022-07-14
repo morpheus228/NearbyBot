@@ -6,6 +6,10 @@ without_number_phone_keyboard = ReplyKeyboardMarkup(
     keyboard=[[KeyboardButton(text='🚫 Без номера телефона')]],
     resize_keyboard=True, one_time_keyboard=True)
 
+without_user_description_keyboard = ReplyKeyboardMarkup(
+    keyboard=[[KeyboardButton(text='🚫 Без описания')]],
+    resize_keyboard=True, one_time_keyboard=True)
+
 without_description_keyboard = ReplyKeyboardMarkup(
     keyboard=[[KeyboardButton(text='🚫 Без подробного описания')]],
     resize_keyboard=True, one_time_keyboard=True)
@@ -20,6 +24,10 @@ stop_photo_adding_keyboard = ReplyKeyboardMarkup(
 
 send_self_geoposition = ReplyKeyboardMarkup(
     keyboard=[[KeyboardButton(text='Отправить свою геопозицию', request_location=True)]],
+    resize_keyboard=True, one_time_keyboard=True)
+
+any_time_keyboard = ReplyKeyboardMarkup(
+    keyboard=[[KeyboardButton(text='Любое время')]],
     resize_keyboard=True, one_time_keyboard=True)
 
 main_menu_keyboard = ReplyKeyboardMarkup(

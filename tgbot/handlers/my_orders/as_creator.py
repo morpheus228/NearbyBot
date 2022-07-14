@@ -22,8 +22,8 @@ async def send_orders(user_id, message, db):
     orders_list_keyboard = get_orders_list_keyboard(orders)
     await message.edit_text('Ваши заказы c ролью "заказчик":\n'
                             f'\t{order_status_smile_dict[1]} - в поисках работника\n'
-                            f'\t{order_status_smile_dict[2]} - в процессе выполнения\n'
-                            f'\t{order_status_smile_dict[3]} - завершен\n', reply_markup=orders_list_keyboard)
+                            f'\t{order_status_smile_dict[2]} - в процессе выполнения\n',
+                            reply_markup=orders_list_keyboard)
 
 
 @my_creator_orders_router.callback_query(MyOrdersCD.filter(F.states_group == 'my_orders'), state=MyOrders.orders_as_creator)
@@ -70,10 +70,9 @@ async def take_order_decision(call: types.CallbackQuery, callback_data: MyOrders
             order = data['order']
             await db.finish_request(active_executor_requests[0], True)
             await db.alter_order(order.id, status=3)
+            await call.message.edit_text(f'✅ Заказ "{order.name}" был завершен.', reply_markup=back_keyboard)
             await bot.send_message(order.executor_id,
                                    f'✅ Заказчик заказа "{order.name}" подтвердил его завершение.')
-            await bot.send_message(order.creator_id,
-                                   f'✅ Заказ "{order.name}" был завершен.', reply_markup=back_keyboard)
 
         if len(active_creator_requests) == 0:
             await request_executor_about_completing(data['order'], bot, db)

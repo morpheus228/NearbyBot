@@ -9,16 +9,18 @@ from tgbot.keyboards.inline.my_orders import order_role_keyboard, MyOrdersCD
 from tgbot.misc.states import MyOrders
 
 from . import as_executor, as_creator
+from .. import commands_router
 from ...filters.callbacks import MyOrdersStateFilter
 from ...keyboards.inline.inline import ConfirmationCD
+from ...keyboards.reply.reply import main_menu_keyboard
 from ...middlewares.spam_protection import AntiSpamMiddleware
-from ...middlewares.throttling import ThrottlingMiddleware
+from ...misc import replicas
 
 my_orders_router = Router()
 my_orders_router.callback_query.bind_filter(MyOrdersStateFilter)
 
 
-@my_orders_router.message(MyOrdersFilter())
+@commands_router.message(MyOrdersFilter())
 async def start(message: types.Message, state: FSMContext):
     await message.answer('Выберите вашу роль в заказах...', reply_markup=order_role_keyboard)
     await state.set_state(MyOrders.role)
@@ -34,6 +36,11 @@ async def take_order_role(call: types.CallbackQuery, callback_data: MyOrdersCD, 
     elif callback_data.value == 'creator':
         await as_creator.send_orders(call.from_user.id, call.message, db)
         await state.set_state(MyOrders.orders_as_creator)
+
+    elif callback_data.value == 'back':
+        await state.clear()
+        await call.message.delete()
+        await call.message.answer(replicas.general.menu, reply_markup=main_menu_keyboard)
 
 
 @my_orders_router.callback_query(ConfirmationCD.filter(F.states_group == 'confirmation'))

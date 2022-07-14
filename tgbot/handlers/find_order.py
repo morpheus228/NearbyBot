@@ -6,6 +6,7 @@ from aiogram.types import Message
 
 from tgbot.database.database import Database
 from tgbot.filters.main_menu import FindOrderFilter
+from tgbot.handlers import commands_router
 from tgbot.keyboards.inline.inline import get_order_keyboard, continue_order_finding_keyboard, FindOrderCD
 from tgbot.misc.orders_searching import find_nearest_orders
 from tgbot.misc.states import FindOrder
@@ -15,7 +16,7 @@ from tgbot.keyboards.reply.reply import *
 find_order_router = Router()
 
 
-@find_order_router.message(FindOrderFilter())
+@commands_router.message(FindOrderFilter())
 async def start(message: types.Message, state: FSMContext):
     await message.answer('Отправьте свою геопозицию, чтобы мы могли найти наиболее близкие для вас заказы...',
                          reply_markup=send_self_geoposition)
@@ -85,7 +86,7 @@ async def send_next_order(bot: Bot, state: FSMContext, db: Database, message: Me
     viewed_orders = data['viewed_orders']
     user_location = (data['latitude'], data['longitude'])
 
-    nearest_orders = await find_nearest_orders(db, user_location)
+    nearest_orders = await find_nearest_orders(db, user_location, message.from_user.id)
     nearest_orders_gen = (i for i in nearest_orders)
 
     while True:

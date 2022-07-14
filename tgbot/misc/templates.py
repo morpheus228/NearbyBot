@@ -9,7 +9,9 @@ def get_order_template(order):
         text += f'{order.description}\n\n'
 
     text += f'<b>Цена:</b> {order.price} руб.\n'
-    text += f'<b>Время выполнения:</b> {order.time}\n'
+
+    if order.time is not None:
+        text += f'<b>Время выполнения:</b> {order.time}\n'
 
     if order.underground is not None:
         text += f'<b>Ближайшая станция метро ({round(order.underground_distance, 2)} км до нее):</b> {order.underground}\n'
@@ -25,8 +27,9 @@ def get_order_template(order):
 
 def get_user_self_template(user_profile):
     text = f'''<b>Имя</b>: {user_profile.name}\n'''
-    text += f'<b>Краткая информация</b>: {user_profile.description}\n'
     text += f'<b>Возраст</b>: {user_profile.age}'
+    if user_profile.description is not None:
+        text += f'<b>\nОписание</b>: {user_profile.description}'
     if user_profile.phone_number is not None:
         text += f'\n<b>Номер телефона</b>: {user_profile.phone_number}'
     return text
@@ -37,17 +40,17 @@ def get_user_template(user_profile, role, order_name=None):
 
     if role == 'executor':
         text += f'Мы нашли для вас работника на заказ "{order_name}"!\n\n'
-        text += f'<b>Исполнитель</b>: {user_profile.name}\n'
+        text += f'<b>Исполнитель</b>: <a href="tg://user?id={user_profile.user_id}">{user_profile.name}</a>\n'
     elif role == 'creator':
-        text += f'<b>Заказчик</b>: {user_profile.name}\n'
+        text += f'<b>Заказчик</b>: <a href="tg://user?id={user_profile.user_id}">{user_profile.name}</a>\n'
 
-    text += f'{user_profile.description}\n'
+    if user_profile.description is not None:
+        text += f'{user_profile.description}\n'
+
     text += f'<b>Возраст</b>: {user_profile.age}\n'
 
     if user_profile.phone_number is not None:
         text += f'<b>Номер телефона</b>: {user_profile.phone_number}\n'
-
-    text += f'@{user_profile.username}\n\n'
 
     text += f'Вам следует связаться с ним и договорится обо всех подробностях и условиях заказа.\n\n'
 

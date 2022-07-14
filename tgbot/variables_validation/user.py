@@ -13,21 +13,28 @@ async def name_is_valid(name, message):
 
 
 async def age_is_valid(age, message):
-    if age.isdigit():
-        if int(age) <= User.age_limit:
-            return True
+    if not age.isdigit():
+        await message.answer(f'Возраст должен состоять из цифр.\n'
+                             f'Введите свой возраст заново...')
+        return False
 
-    await message.answer(f'Возраст должен состоять из цифр и быть меньше {User.age_limit} лет. '
-                         f'Введите свой возраст заново...')
-    return False
+    elif int(age) > User.age_limit:
+        await message.answer(f'Возраст должен быть меньше {User.age_limit} лет.\n'
+                             f'Введите свой возраст заново...')
+        return False
+
+    return True
 
 
 async def description_is_valid(description, message):
-    if len(description) > User.description_length_limit:
-        await message.answer(f'Ваше описание не может быть длиннее, чем {User.description_length_limit} символов. '
-                             f'Напишите пару слов о себе заново...')
-        return False
-    return True
+    if description is None:
+        return True
+    else:
+        if len(description) > User.description_length_limit:
+            await message.answer(f'Ваше описание не может быть длиннее, чем {User.description_length_limit} символов. '
+                                 f'Напишите пару слов о себе заново...')
+            return False
+        return True
 
 
 async def phone_number_is_valid(phone_number, message):

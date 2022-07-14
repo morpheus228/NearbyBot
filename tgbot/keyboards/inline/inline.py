@@ -12,6 +12,8 @@ def get_order_keyboard(order):
     url = f'http://maps.yandex.com/?pt= {order.longitude}, {order.latitude} &z=16&l=map'
 
     order_keyboard = InlineKeyboardBuilder([
+        # [InlineKeyboardButton(text='🗺 Пожаловаться',
+        #                       callback_data=FindOrderCD(value='complaint').pack())],
         [InlineKeyboardButton(text='🗺 Посмотреть местоположение',
                               callback_data=FindOrderCD(value='map').pack(), url=url)],
         [InlineKeyboardButton(text='❌ Пропустить заказ',

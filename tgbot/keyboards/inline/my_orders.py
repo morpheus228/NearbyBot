@@ -15,10 +15,13 @@ class MyOrdersCD(CallbackData, prefix=''):
 
 
 order_role_keyboard = InlineKeyboardBuilder([
-        [InlineKeyboardButton(text='Исполнитель',
-                              callback_data=MyOrdersCD(value='executor').pack())],
-        [InlineKeyboardButton(text='Заказчик',
-                              callback_data=MyOrdersCD(value='creator').pack())],
+        [InlineKeyboardButton(text='🧑‍💼 Заказчик',
+                              callback_data=MyOrdersCD(value='creator').pack()),
+         InlineKeyboardButton(text='🛠 Исполнитель',
+                              callback_data=MyOrdersCD(value='executor').pack()),
+         ],
+        [InlineKeyboardButton(text='🔙 НАЗАД 🔙',
+                              callback_data=MyOrdersCD(value='back').pack())],
     ]).as_markup()
 
 
