@@ -6,7 +6,6 @@ class AllMessageHandlersMiddleware(BaseMiddleware):
         self.db = dp['db']
 
     async def __call__(self, handler, event, data):
-        print(event.from_user)
         result = await handler(event, data)
         await self.db.add_message_event(event)
         return result

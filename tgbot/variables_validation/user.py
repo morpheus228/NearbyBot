@@ -1,7 +1,7 @@
 from tgbot.database.schemas import User
-import re
-
-phone_number_rule = re.compile('^((\+?7|8)[ \-] ?)?((\(\d{3}\))|(\d{3}))?([ \-])?(\d{3}[\- ]?\d{2}[\- ]?\d{2})$')
+import phonenumbers
+from phonenumbers import carrier
+from phonenumbers.phonenumberutil import number_type
 
 
 async def name_is_valid(name, message):
@@ -41,9 +41,16 @@ async def phone_number_is_valid(phone_number, message):
     if phone_number is None:
         return True
     else:
-        if not phone_number_rule.search(phone_number):
-            await message.answer(f'Номер введён неправильно. '
-                                 f'Введите свой номер телефона заново...')
+        try:
+            if (carrier._is_mobile(number_type(phonenumbers.parse(phone_number)))):
+                return True
+            else:
+                await message.answer(f'Номер телефон введён неправильно. \n'
+                                     f'(он должен соотвествовать формату +7 999 999 99 99) \n'
+                                     f'Введите свой номер телефона заново...')
+                return False
+        except:
+            await message.answer(f'Номер телефон введён неправильно. \n'
+                                     f'(он должен соотвествовать формату +7 999 999 99 99) \n'
+                                     f'Введите свой номер телефона заново...')
             return False
-        else:
-            return True
