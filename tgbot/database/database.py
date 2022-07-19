@@ -121,7 +121,7 @@ class Database:
         return UserProfile().load_from_db(row)
 
     async def get_orders_with_location(self, executor_id):
-        sql = f'''SELECT id, latitude, longitude FROM orders WHERE status = 1 AND  creator_id != {executor_id};'''
+        sql = f'''SELECT id, latitude, longitude FROM orders WHERE status = 1;'''
         rows = await self.fetch(sql)
         return [(row[0], (row[1], row[2])) for row in rows]
 
