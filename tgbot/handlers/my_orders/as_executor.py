@@ -8,8 +8,10 @@ from tgbot.keyboards.inline.my_orders import get_orders_list_keyboard, order_sta
 
 from tgbot.misc.states import MyOrders
 from tgbot.misc.templates import get_order_template
-from .scripts import check_back_to_role, delete_photo_messages, notify_creator_about_denial, \
-    request_creator_about_completing
+from .scripts import check_back_to_role, delete_photo_messages
+from tgbot.notifications.denial import notify_creator_about_denial
+from tgbot.notifications.requests import request_creator_about_completing
+
 
 my_executor_orders_router = Router()
 
@@ -73,6 +75,7 @@ async def take_order_decision(call: types.CallbackQuery, callback_data: MyOrders
                                          reply_markup=back_keyboard)
 
         else:
+            await delete_photo_messages(state, bot)
             await call.message.edit_text('У вас уже есть одна активная завяка на подтверждение данного заказа.',
                                          reply_markup=back_keyboard)
 

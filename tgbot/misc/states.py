@@ -7,6 +7,8 @@ class UserRegistration(StatesGroup):
     age = State()
     phone_number = State()
     description = State()
+    notifications = State()
+    location = State()
 
 
 # Список состоний для создания нового заказа
@@ -48,3 +50,8 @@ class MyProfile(StatesGroup):
     age = State()
     phone_number = State()
     description = State()
+
+
+class Settings(StatesGroup):
+    action = State()
+    location = State()

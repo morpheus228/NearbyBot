@@ -8,19 +8,25 @@ from tgbot.database.database import Database
 from tgbot.filters.main_menu import FindOrderFilter
 from tgbot.handlers import commands_router
 from tgbot.keyboards.inline.inline import get_order_keyboard, continue_order_finding_keyboard, FindOrderCD
-from tgbot.misc.orders_searching import find_nearest_orders
+from tgbot.misc import replicas
+from tgbot.misc.searching import find_nearest_orders
 from tgbot.misc.states import FindOrder
 from tgbot.misc.templates import get_order_template, get_user_template
 from tgbot.keyboards.reply.reply import *
+from tgbot.validation.orders_count import check_orders_count_for_executor
 
 find_order_router = Router()
 
 
 @commands_router.message(FindOrderFilter())
-async def start(message: types.Message, state: FSMContext):
-    await message.answer('Отправьте свою геопозицию, чтобы мы могли найти наиболее близкие для вас заказы...',
-                         reply_markup=send_self_geoposition)
-    await state.set_state(FindOrder.location)
+async def start(message: types.Message, state: FSMContext, db: Database):
+    if not await check_orders_count_for_executor(message.from_user.id, db):
+        await message.answer(replicas.warnings.orders_limit_for_executor, reply_markup=main_menu_keyboard)
+
+    else:
+        await message.answer('Отправьте свою геопозицию, чтобы мы могли найти наиболее близкие для вас заказы...',
+                             reply_markup=send_self_geoposition)
+        await state.set_state(FindOrder.location)
 
 
 # Принимаем геопозицию пользователя
@@ -36,8 +42,7 @@ async def take_geoposition(message: types.Message, state: FSMContext, db: Databa
 
     if status == 'no_orders':
         await state.set_state(FindOrder.location)
-        await message.answer('Пока доступных заказов нет (( Попробуйте подождать или обновить свою геопозицию ',
-                             reply_markup=send_self_geoposition)
+        await message.answer(replicas.warnings.orders_absence, reply_markup=send_self_geoposition)
 
 
 # Принимаем геопозицию пользователя
@@ -51,8 +56,7 @@ async def take_order_decision(call: types.CallbackQuery, state: FSMContext, call
 
         if status == 'no_orders':
             await state.set_state(FindOrder.location)
-            await call.message.answer('Больше доступных заказов нет(( Попробуйте обновить свою геопозицию...',
-                                      reply_markup=send_self_geoposition)
+            await call.message.answer(replicas.warnings.orders_over, reply_markup=send_self_geoposition)
 
     elif callback_data.value == 'accept':
         order = data['order']

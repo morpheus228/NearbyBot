@@ -25,6 +25,26 @@ def get_order_keyboard(order):
     return order_keyboard.as_markup()
 
 
+class OrderNotificationCD(CallbackData, prefix=''):
+    value: str
+    states_group: str = 'order_notification'
+
+
+def get_order_notification_keyboard(order):
+    url = f'http://maps.yandex.com/?pt= {order.longitude}, {order.latitude} &z=16&l=map'
+
+    order_keyboard = InlineKeyboardBuilder([
+        [InlineKeyboardButton(text='🗺 Посмотреть местоположение',
+                              callback_data=OrderNotificationCD(value='map').pack(), url=url)],
+        [InlineKeyboardButton(text='❌ Отклонить заказ',
+                              callback_data=OrderNotificationCD(value='disaccept').pack())],
+        [InlineKeyboardButton(text='✔ Принять заказ ',
+                              callback_data=OrderNotificationCD(value='accept').pack())],
+    ])
+
+    return order_keyboard.as_markup()
+
+
 continue_order_finding_keyboard = InlineKeyboardBuilder([
         [InlineKeyboardButton(text='▶ Продолжить поиск заказов',
                               callback_data=FindOrderCD(value='skip').pack())],

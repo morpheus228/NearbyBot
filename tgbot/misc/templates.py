@@ -39,7 +39,7 @@ def get_user_template(user_profile, role, order_name=None):
     text = ''
 
     if role == 'executor':
-        text += f'Мы нашли для вас работника на заказ "{order_name}"!\n\n'
+        text += f'Мы нашли для вас исполнителя на заказ "{order_name}"!\n\n'
         text += f'<b>Исполнитель</b>: <a href="tg://user?id={user_profile.user_id}">{user_profile.name}</a>'
     elif role == 'creator':
         text += f'<b>Заказчик</b>: <a href="tg://user?id={user_profile.user_id}">{user_profile.name}</a>'

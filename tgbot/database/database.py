@@ -1,6 +1,6 @@
 import asyncpg
 import logging
-from tgbot.database.schemas import Order, User, UserProfile, Request
+from tgbot.database.schemas import Order, User, UserProfile, Request, Notification
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +35,10 @@ class Database:
             except ignore_error:
                 pass
 
-    async def fetchrow(self, sql, ignore_error=None):
+    async def fetchrow(self, sql, ignore_error=None, parse_none=True):
+        if parse_none:
+            sql = sql.replace("'None'", "None").replace('None', 'null')
+
         if ignore_error is None:
             return await self.pool.fetchrow(sql)
 
@@ -93,6 +96,21 @@ class Database:
 
         await self.execute(sql)
 
+    async def add_notification(self, message_id, order_id):
+        sql = f'''INSERT INTO notifications (
+              message_id, order_id, created_at)
+              VALUES (
+              {message_id}, {order_id}, NOW());'''
+        await self.execute(sql)
+
+    async def add_related_message(self, message_id, main_message_id):
+        sql = f'''INSERT INTO related_messages (
+              id, main_message_id)
+              VALUES (
+              {message_id}, {main_message_id});'''
+
+        await self.execute(sql)
+
     async def get_order_by_id(self, order_id):
         sql = f'''SELECT
         name, description, address, time, underground, 
@@ -114,25 +132,30 @@ class Database:
 
     async def get_user_profile_by_id(self, user_id):
         sql = f'''SELECT
-        id, name, age, description, phone_number, username
+        id, name, age, description, phone_number, username, latitude, longitude, notifications
         FROM users WHERE id = {user_id}'''
 
         row = await self.fetchrow(sql)
         return UserProfile().load_from_db(row)
 
+    async def get_sending_users_with_location(self, creator_id):
+        sql = f'''SELECT id, latitude, longitude FROM users WHERE notifications = true AND id != {creator_id};'''
+        rows = await self.fetch(sql)
+        return [(row[0], (row[1], row[2])) for row in rows]
+
     async def get_orders_with_location(self, executor_id):
-        sql = f'''SELECT id, latitude, longitude FROM orders WHERE status = 1;'''
+        sql = f'''SELECT id, latitude, longitude FROM orders WHERE status=1 AND creator_id != {executor_id};'''
         rows = await self.fetch(sql)
         return [(row[0], (row[1], row[2])) for row in rows]
 
     async def get_orders_as_creator(self, user_id):
-        sql = f'''SELECT id FROM orders WHERE (creator_id={user_id}) and (status != 3);'''
+        sql = f'''SELECT id FROM orders WHERE creator_id={user_id} AND status != 3;'''
         rows = await self.fetch(sql)
         orders = [await self.get_order_by_id(row[0]) for row in rows]
         return orders
 
     async def get_orders_as_executor(self, user_id):
-        sql = f'''SELECT id FROM orders WHERE (executor_id={user_id}) and (status != 3);'''
+        sql = f'''SELECT id FROM orders WHERE executor_id={user_id} AND status != 3;'''
         rows = await self.fetch(sql)
         orders = [await self.get_order_by_id(row[0]) for row in rows]
         return orders
@@ -147,6 +170,22 @@ class Database:
         WHERE order_id={order_id} AND requester='{requester}' AND {requester+'_id'} = {user_id} AND agreement is null;'''
         rows = [row[0] for row in await self.fetch(sql)]
         return rows
+
+    async def get_notification(self, message_id):
+        sql = f'''SELECT (message_id, order_id, accept) 
+        FROM notifications WHERE message_id={message_id};'''
+        row = await self.fetchrow(sql)
+        return Notification().load_from_db(row[0])
+
+    async def get_related_messages(self, message_id):
+        sql = f'''SELECT id FROM related_messages
+        WHERE main_message_id={message_id};'''
+        rows = [row[0] for row in await self.fetch(sql)]
+        return rows
+
+    async def delete_related_messages(self, main_message_id):
+        sql = f'DELETE FROM related_messages WHERE main_message_id = {main_message_id};'
+        await self.execute(sql)
 
     async def delete_order(self, order_id):
         sql = f'DELETE FROM orders WHERE id = {order_id};'
@@ -182,6 +221,14 @@ class Database:
         sql = f'''UPDATE requests SET
               agreement = {agreement},
               answered_at = NOW()
+              WHERE message_id = {message_id};'''
+
+        await self.execute(sql)
+
+    async def finish_notification(self, message_id, accept):
+        sql = f'''UPDATE notifications SET
+              accept = {accept},
+              updated_at = NOW()
               WHERE message_id = {message_id};'''
 
         await self.execute(sql)

@@ -21,4 +21,7 @@ my_profile_keyboard = InlineKeyboardBuilder([
 
         [InlineKeyboardButton(text='Заполнить профиль заново',
                               callback_data=MyProfileCD(value='full').pack())],
+
+        [InlineKeyboardButton(text='🔙 НАЗАД 🔙',
+                              callback_data=MyProfileCD(value='back').pack())],
     ]).as_markup()

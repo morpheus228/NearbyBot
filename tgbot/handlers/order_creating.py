@@ -7,26 +7,33 @@ from tgbot.database.database import Database
 from tgbot.filters.main_menu import NewOrderFilter
 from tgbot.filters.order_creating import WithoutPhotoFilter
 from tgbot.handlers import commands_router
+from tgbot.misc import replicas
 from tgbot.misc.main_router import main_menu
 from tgbot.misc.states import OrderCreating
 from tgbot.misc.templates import get_order_template
-from tgbot.variables_validation.order import *
+from tgbot.notifications.new_order import notify_about_new_order
+from tgbot.validation.order import *
 from tgbot.keyboards.reply.reply import *
 
 from tgbot.misc.underground import find_nearest_underground
+from tgbot.validation.orders_count import check_orders_count_for_creator
 
 order_creating_router = Router()
 
 
 @commands_router.message(NewOrderFilter())
-async def start(message: types.Message, state: FSMContext):
-    await message.answer('Введите название заказа...', reply_markup=remove_keyboard)
-    await state.set_state(OrderCreating.name)
+async def start(message: types.Message, state: FSMContext, db: Database):
+    if not await check_orders_count_for_creator(message.from_user.id, db):
+        await message.answer(replicas.warnings.orders_limit_for_creator, reply_markup=main_menu_keyboard)
+
+    else:
+        await message.answer('Введите название заказа...', reply_markup=remove_keyboard)
+        await state.set_state(OrderCreating.name)
 
 
 # Принимаем название заказа
 @order_creating_router.message(state=OrderCreating.name)
-async def take_name(message: types.Message, state: FSMContext):
+async def take_name(message: types.Message, state: FSMContext, db: Database, bot: Bot):
     name = message.text
 
     if await name_is_valid(name, message):
@@ -157,44 +164,21 @@ async def take_geoposition(message: types.Message, state: FSMContext, bot: Bot):
     await message.answer('Сохраняем заказ?', reply_markup=save_order_keyboard)
 
 
-    # await state.set_state(OrderCreating.time)
-    # await message.answer('Введите время исполнения заказа...', reply_markup=any_time_keyboard)
-
-
-# # Принимаем время исполнения заказа
-# @order_creating_router.message(state=OrderCreating.time)
-# async def take_time(message: types.Message, state: FSMContext, bot: Bot, db: Database):
-#     time = message.text
-#
-#     if time == any_time_keyboard.keyboard[0][0].text:
-#         time = None
-#
-#     if await time_is_valid(time, message):
-#         await state.update_data(time=time, creator_id=message.from_user.id, status=1)
-#         data = await state.get_data()
-#
-#         order = Order().load_from_data(data)
-#         text, photos = get_order_template(order)
-#
-#         if len(photos) == 0:
-#             await message.answer(text)
-#         else:
-#             photos[0].caption = text
-#             await bot.send_media_group(message.chat.id, photos)
-#
-#         await state.update_data(order=order)
-#         await state.set_state(OrderCreating.confirmation)
-#         await message.answer('Сохраняем заказ?', reply_markup=save_order_keyboard)
+# Принимаем геопозицию заказа
+@order_creating_router.message(state=OrderCreating.address)
+async def take_false_geoposition(message: types.Message):
+    await message.answer('Отправьте геопозицию заказа...', reply_markup=send_self_geoposition)
 
 
 # Принимаем время исполнения заказа
 @order_creating_router.message(state=OrderCreating.confirmation)
-async def take_decision(message: types.Message, state: FSMContext, db: Database):
+async def take_decision(message: types.Message, state: FSMContext, db: Database, bot: Bot):
     answer = message.text
-
+    data = await state.get_data()
     if answer == save_order_keyboard.keyboard[0][0].text:
-        await (await state.get_data())['order'].save(db)
+        await data['order'].save(db)
         await state.clear()
+        await notify_about_new_order(data['order'], db, bot)
         await message.answer('Отлично! Заказ сохранен. '
                              'Вам осталось подождать, пока мы найдем для него исполнителя...',
                              reply_markup=main_menu_keyboard)

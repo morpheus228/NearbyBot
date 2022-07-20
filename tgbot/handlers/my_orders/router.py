@@ -9,12 +9,12 @@ from tgbot.keyboards.inline.my_orders import order_role_keyboard, MyOrdersCD
 from tgbot.misc.states import MyOrders
 
 from . import as_executor, as_creator
-from .. import commands_router
+from .. import commands_router, notifications_router
 from ...filters.callbacks import MyOrdersStateFilter
 from ...keyboards.inline.inline import ConfirmationCD
 from ...keyboards.reply.reply import main_menu_keyboard
-from ...middlewares.spam_protection import AntiSpamMiddleware
 from ...misc import replicas
+from ...misc.main_router import main_menu
 
 my_orders_router = Router()
 my_orders_router.callback_query.bind_filter(MyOrdersStateFilter)
@@ -38,12 +38,11 @@ async def take_order_role(call: types.CallbackQuery, callback_data: MyOrdersCD, 
         await state.set_state(MyOrders.orders_as_creator)
 
     elif callback_data.value == 'back':
-        await state.clear()
         await call.message.delete()
-        await call.message.answer(replicas.general.menu, reply_markup=main_menu_keyboard)
+        await main_menu(call.message, state)
 
 
-@my_orders_router.callback_query(ConfirmationCD.filter(F.states_group == 'confirmation'))
+@notifications_router.callback_query(ConfirmationCD.filter(F.states_group == 'confirmation'))
 async def take_confirmation_of_completing(call: types.CallbackQuery, callback_data: ConfirmationCD, db: Database, bot: Bot):
     message_id = call.message.message_id
     request = await db.get_request_by_message_id(message_id)

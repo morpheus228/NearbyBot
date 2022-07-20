@@ -2,6 +2,18 @@ from dataclasses import dataclass
 
 from environs import Env
 
+# Order searching limitations
+ORDER_AVAILABILITY_RADIUS = 10
+
+# Antispam middleware
+PAUSE_TIME = 2
+IGNORE_TIME = 120
+WARNINGS_LIMIT = 5
+
+# Orders count limitations
+MAX_ORDERS_COUNT_AS_CREATOR = 5
+MAX_ORDERS_COUNT_AS_EXECUTOR = 5
+
 
 @dataclass
 class DbConfig:

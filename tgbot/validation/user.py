@@ -3,6 +3,8 @@ import phonenumbers
 from phonenumbers import carrier
 from phonenumbers.phonenumberutil import number_type
 
+from tgbot.keyboards.reply.reply import notifications_decision_keyboard
+
 
 async def name_is_valid(name, message):
     if len(name) > User.name_length_limit:
@@ -54,3 +56,12 @@ async def phone_number_is_valid(phone_number, message):
                                      f'(он должен соотвествовать формату +7 999 999 99 99) \n'
                                      f'Введите свой номер телефона заново...')
             return False
+
+
+async def notifications_decision_is_valid(decision, message):
+    if (decision == notifications_decision_keyboard.keyboard[0][0].text) or (decision == notifications_decision_keyboard.keyboard[0][1].text):
+        return True
+    else:
+        await message.answer('Извините я вас не понимаю. Выберите варианты, предложенные мною.\n'
+                             'Включить уведомления о новых заказах?')
+        return False

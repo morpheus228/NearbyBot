@@ -41,3 +41,11 @@ class FeedbackFilter(BaseFilter):
 
     async def __call__(self, message: Message):
         return message.text in [self.command, self.text_message]
+
+
+class SettingsFilter(BaseFilter):
+    command = '/settings'
+    text_message = main_menu_keyboard.keyboard[2][1].text
+
+    async def __call__(self, message: Message):
+        return message.text in [self.command, self.text_message]

@@ -34,7 +34,7 @@ main_menu_keyboard = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text='Создать заказ'), KeyboardButton(text='Найти заказ')],
         [KeyboardButton(text='Мои заказы'), KeyboardButton(text='Мой профиль')],
-        [KeyboardButton(text='Обратная связь')],
+        [KeyboardButton(text='Обратная связь'), KeyboardButton(text='Настройки')],
     ],
     resize_keyboard=True, one_time_keyboard=True)
 
@@ -42,5 +42,12 @@ save_order_keyboard = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text='Да! Все верно')],
         [KeyboardButton(text='Нет! Отмена')]
+    ],
+    resize_keyboard=True, one_time_keyboard=True)
+
+
+notifications_decision_keyboard = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text='✅ Да'), KeyboardButton(text='❌ Нет')],
     ],
     resize_keyboard=True, one_time_keyboard=True)

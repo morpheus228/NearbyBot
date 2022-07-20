@@ -6,17 +6,15 @@ from aiogram.dispatcher.fsm.context import FSMContext
 from tgbot.database.database import Database
 from tgbot.database.schemas import UserProfile
 from tgbot.filters.main_menu import MyProfileFilter
-from tgbot.filters.order_creating import WithoutPhotoFilter
 from tgbot.handlers import commands_router
 from tgbot.keyboards.inline.my_profile import my_profile_keyboard, MyProfileCD
 from tgbot.misc.main_router import main_menu
-from tgbot.misc.states import OrderCreating, MyProfile
+from tgbot.misc.states import MyProfile
 from tgbot.misc.templates import get_user_self_template
-from tgbot.variables_validation.order import *
+from tgbot.validation.order import *
 from tgbot.keyboards.reply.reply import *
 
-from tgbot.misc.underground import find_nearest_underground
-from tgbot.variables_validation.user import age_is_valid, phone_number_is_valid
+from tgbot.validation.user import age_is_valid, phone_number_is_valid
 from tgbot.misc import replicas
 
 my_profile_router = Router()
@@ -59,6 +57,9 @@ async def take_action(call: types.CallbackQuery, callback_data: MyProfileCD, sta
         await call.message.answer(replicas.user_registration.name, reply_markup=remove_keyboard)
         await state.set_state(MyProfile.name)
         await state.update_data(action='full')
+
+    elif callback_data.value == 'back':
+        await main_menu(call.message, state)
 
 
 # Принимаем имя пользователя

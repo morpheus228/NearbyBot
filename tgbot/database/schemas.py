@@ -73,6 +73,10 @@ class UserProfile(DatabaseObject, ABC):
         self.age = None
         self.description = None
         self.phone_number = None
+        self.notifications = None
+        self.latitude = None
+        self.longitude = None
+        self.notifications = None
 
     async def save(self, db):
         sql = f'''UPDATE users SET
@@ -80,6 +84,9 @@ class UserProfile(DatabaseObject, ABC):
         description = '{self.description}',
         age = {self.age},
         phone_number = '{self.phone_number}',
+        notifications = {self.notifications},
+        latitude = {self.latitude},
+        longitude = {self.longitude},
         registered = true
         WHERE id = {self.user_id};'''
 
@@ -93,6 +100,9 @@ class UserProfile(DatabaseObject, ABC):
         self.description = row[3]
         self.phone_number = row[4]
         self.username = row[5]
+        self.latitude = row[6]
+        self.longitude = row[7]
+        self.notifications = row[8]
 
         return self
 
@@ -139,9 +149,11 @@ class Order(DatabaseObject):
         '{self.name}', '{self.description}', '{self.address}', '{self.time}', '{self.underground}', 
         {self.underground_distance},  {self.price},  {self.status},  {self.latitude},  {self.longitude},
         '{self.photo_1}', '{self.photo_2}', '{self.photo_3}', '{self.photo_4}', '{self.photo_5}', '{self.photo_6}',
-        {self.creator_id}, {self.executor_id}, NOW());'''
+        {self.creator_id}, {self.executor_id}, NOW())
+        RETURNING id;'''
 
-        await db.execute(sql)
+        row = await db.fetchrow(sql)
+        self.id = row[0]
         return self
 
     def load_from_db(self, row):
@@ -168,7 +180,7 @@ class Order(DatabaseObject):
         return self
 
 
-class Request():
+class Request:
     def __init__(self):
         self.message_id = None
         self.order_id = None
@@ -182,6 +194,22 @@ class Request():
         self.requester = row[2]
         self.action = row[3]
         self.agreement = row[4]
+        return self
+
+    def save(self):
+        pass
+
+
+class Notification:
+    def __init__(self):
+        self.message_id = None
+        self.order_id = None
+        self.accept = None
+
+    def load_from_db(self, row):
+        self.message_id = row[0]
+        self.order_id = row[1]
+        self.accept = row[2]
         return self
 
     def save(self):
