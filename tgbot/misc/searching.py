@@ -10,9 +10,9 @@ async def find_nearest_orders(db, user_location, executor_id):
     return orders
 
 
-async def find_users_for_mailing(order, db):
+async def find_users_for_mailing(order, db, config):
     users = await db.get_sending_users_with_location(order.creator_id)
     users = [(user[0], calc_distance((order.latitude, order.longitude), user[1])) for user in users]
-    users = filter(lambda x: x[1] < ORDER_AVAILABILITY_RADIUS, users)
+    users = list(filter(lambda x: (x[1] < ORDER_AVAILABILITY_RADIUS) or (x[0] in config.tg_bot.admin_ids), users))
     users = sorted(users, key=lambda x: x[1])
     return users

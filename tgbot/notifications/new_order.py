@@ -1,5 +1,6 @@
 from aiogram import F, types, Bot
 
+from tgbot.config import Config
 from tgbot.database.database import Database
 from tgbot.handlers import notifications_router
 from tgbot.keyboards.inline.inline import get_order_notification_keyboard, OrderNotificationCD
@@ -9,8 +10,8 @@ from tgbot.misc.templates import get_order_template, get_user_template
 from tgbot.validation.orders_count import check_orders_count_for_executor
 
 
-async def notify_about_new_order(order, db: Database, bot):
-    user_rows = await find_users_for_mailing(order, db)
+async def notify_about_new_order(order, db: Database, bot: Bot, config: Config):
+    user_rows = await find_users_for_mailing(order, db, config)
     reply_markup = get_order_notification_keyboard(order)
     text, photos = get_order_template(order)
     text = '🆕 Мы нашли вам новый заказ!\n(Отменить уведомления можно в Настройках /settings)\n\n'+ text

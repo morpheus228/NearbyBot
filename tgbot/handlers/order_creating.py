@@ -3,6 +3,7 @@
 from aiogram import types, Router, Bot
 from aiogram.dispatcher.fsm.context import FSMContext
 
+from tgbot.config import Config
 from tgbot.database.database import Database
 from tgbot.filters.main_menu import NewOrderFilter
 from tgbot.filters.order_creating import WithoutPhotoFilter
@@ -172,13 +173,13 @@ async def take_false_geoposition(message: types.Message):
 
 # Принимаем время исполнения заказа
 @order_creating_router.message(state=OrderCreating.confirmation)
-async def take_decision(message: types.Message, state: FSMContext, db: Database, bot: Bot):
+async def take_decision(message: types.Message, state: FSMContext, db: Database, bot: Bot, config: Config):
     answer = message.text
     data = await state.get_data()
     if answer == save_order_keyboard.keyboard[0][0].text:
         await data['order'].save(db)
         await state.clear()
-        await notify_about_new_order(data['order'], db, bot)
+        await notify_about_new_order(data['order'], db, bot, config)
         await message.answer('Отлично! Заказ сохранен. '
                              'Вам осталось подождать, пока мы найдем для него исполнителя...',
                              reply_markup=main_menu_keyboard)
