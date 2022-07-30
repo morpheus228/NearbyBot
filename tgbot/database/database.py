@@ -14,7 +14,8 @@ class Database:
             user=config.user,
             password=config.password,
             database=config.database,
-            host=config.host)
+            host=config.host,
+            port=config.port)
 
     async def execute(self, sql, ignore_error=None, parse_none=True):
         if parse_none:
